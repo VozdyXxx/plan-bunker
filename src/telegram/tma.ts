@@ -52,7 +52,7 @@ export function getUserId(): string {
 }
 
 export function roomLink(code: string): string {
-  return `https://t.me/${BOT_USERNAME}/app?startapp=${code}`;
+  return `https://t.me/${BOT_USERNAME}?startapp=${code}`;
 }
 
 export function shareRoom(code: string): string {
