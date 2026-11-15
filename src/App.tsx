@@ -6,6 +6,8 @@ import type { RoomAdapter } from './net/RoomAdapter';
 import { adapterMode } from './net/selectAdapter';
 import { initTelegram, getStartParam, getUserName, getUserId } from './telegram/tma';
 import { startGame, addBot, autoRevealBots, autoVoteBots, resolveVote, finishGame } from './game/controller';
+import { buildEndingInput } from './game/endings/input';
+import { fallbackStory } from './game/endings/fallback';
 import { Lobby } from './ui/Lobby';
 import { RoundView } from './ui/RoundView';
 import { VoteView } from './ui/VoteView';
@@ -13,11 +15,10 @@ import { EndingView } from './ui/EndingView';
 import { Button, Screen } from './ui/kit';
 import { theme } from './ui/theme';
 
-const adapter: RoomAdapter =
+const useMemory =
   adapterMode({ VITE_SERVER_URL: import.meta.env.VITE_SERVER_URL as string | undefined, DEV: import.meta.env.DEV }) ===
-  'memory'
-    ? memoryAdapter
-    : socketAdapter;
+  'memory';
+const adapter: RoomAdapter = useMemory ? memoryAdapter : socketAdapter;
 const rng = () => Math.random();
 
 export default function App() {
@@ -70,10 +71,18 @@ export default function App() {
   const onReveal = (cat: Category) => room && adapter.reveal(codeRef.current, me.id, cat);
   const onToVote = () => room && push(autoVoteBots({ ...room, phase: 'vote', votes: {} }, rng));
   const onVote = (target: string) => room && adapter.vote(codeRef.current, me.id, target);
+  const onPlayAbility = (cardId: string, targetId?: string) =>
+    room && adapter.playAbility(codeRef.current, me.id, cardId, targetId);
   const onResolve = () => {
     if (!room) return;
-    let s = resolveVote(room);
-    s = s.phase === 'ending' ? finishGame(s, rng) : autoRevealBots(s, rng);
+    let s = resolveVote(room, rng);
+    if (s.phase === 'ending') {
+      s = finishGame(s, rng);
+      // В одиночном (memory) режиме сервера нет — делаем историю локально (фоллбэк).
+      if (useMemory) s = { ...s, story: fallbackStory(buildEndingInput(s)) };
+    } else {
+      s = autoRevealBots(s, rng);
+    }
     push(s);
   };
   const onRestart = () =>
@@ -127,7 +136,16 @@ export default function App() {
     case 'lobby':
       return <Lobby state={room} me={mePlayer} isHost={isHost} onAddBot={onAddBot} onStart={onStart} />;
     case 'round':
-      return <RoundView state={room} me={mePlayer} isHost={isHost} onReveal={onReveal} onToVote={onToVote} />;
+      return (
+        <RoundView
+          state={room}
+          me={mePlayer}
+          isHost={isHost}
+          onReveal={onReveal}
+          onToVote={onToVote}
+          onPlayAbility={onPlayAbility}
+        />
+      );
     case 'vote':
       return <VoteView state={room} me={mePlayer} isHost={isHost} onVote={onVote} onResolve={onResolve} />;
     case 'ending':

@@ -1,6 +1,8 @@
 import type { Category, Player, RoomState } from '../game/types';
 import { Button, Screen, ScenarioBanner } from './kit';
 import { TraitReveal } from './TraitReveal';
+import { BunkerPanel } from './BunkerPanel';
+import { AbilityBar } from './AbilityBar';
 import { theme } from './theme';
 
 interface Props {
@@ -9,9 +11,10 @@ interface Props {
   isHost: boolean;
   onReveal: (category: Category) => void;
   onToVote: () => void;
+  onPlayAbility: (cardId: string, targetId?: string) => void;
 }
 
-export function RoundView({ state, me, isHost, onReveal, onToVote }: Props) {
+export function RoundView({ state, me, isHost, onReveal, onToVote, onPlayAbility }: Props) {
   const alive = state.players.filter((p) => p.alive);
   const charOf = (id: string) => state.characters?.find((c) => c.playerId === id);
 
@@ -27,6 +30,11 @@ export function RoundView({ state, me, isHost, onReveal, onToVote }: Props) {
           round={state.round}
         />
       )}
+
+      <BunkerPanel catastrophe={state.catastrophe} place={state.place} bunker={state.bunker} />
+
+      <AbilityBar me={me} players={state.players} onPlay={onPlayAbility} />
+
       <p style={{ color: theme.colors.dim, margin: 0, fontSize: 14 }}>
         Раскрывайте свои карты и спорьте, почему именно вы достойны места.
       </p>
