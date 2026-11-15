@@ -1,5 +1,13 @@
-import { test, expect } from 'vitest';
-import { isTrait, type Trait, type Character, type RoomState } from './types';
+import { test, expect, describe, it } from 'vitest';
+import {
+  isTrait,
+  isAbilityKind,
+  isAbilityCard,
+  type Trait,
+  type Character,
+  type RoomState,
+  type AbilityCard,
+} from './types';
 
 test('isTrait accepts a well-formed trait', () => {
   const t: Trait = { id: 'prof-1', category: 'profession', text: 'Дегустатор просрочки', tags: [] };
@@ -28,4 +36,42 @@ test('Character and RoomState shapes compile and hold expected fields', () => {
   };
   expect(room.phase).toBe('lobby');
   expect(room.players[0].alive).toBe(true);
+});
+
+describe('isAbilityKind', () => {
+  it('принимает три валидных вида', () => {
+    expect(isAbilityKind('active')).toBe(true);
+    expect(isAbilityKind('on_eliminated')).toBe(true);
+    expect(isAbilityKind('on_survived')).toBe(true);
+  });
+  it('отклоняет мусор', () => {
+    expect(isAbilityKind('passive')).toBe(false);
+    expect(isAbilityKind(42)).toBe(false);
+    expect(isAbilityKind(null)).toBe(false);
+  });
+});
+
+describe('isAbilityCard', () => {
+  const valid: AbilityCard = {
+    id: 'active-0',
+    kind: 'active',
+    mechanic: 'vote_immune',
+    title: 'Неприкосновенный',
+    text: 'Против вас нельзя голосовать один раунд.',
+  };
+
+  it('принимает валидную карту', () => {
+    expect(isAbilityCard(valid)).toBe(true);
+  });
+  it('принимает карту с used и params', () => {
+    expect(isAbilityCard({ ...valid, used: true, params: { spots: 1 } })).toBe(true);
+  });
+  it('отклоняет карту с неверным kind', () => {
+    expect(isAbilityCard({ ...valid, kind: 'passive' })).toBe(false);
+  });
+  it('отклоняет не-объекты и неполные карты', () => {
+    expect(isAbilityCard(null)).toBe(false);
+    expect(isAbilityCard({ id: 'x' })).toBe(false);
+    expect(isAbilityCard({ ...valid, id: 123 })).toBe(false);
+  });
 });
