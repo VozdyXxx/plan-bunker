@@ -97,6 +97,8 @@ export default function App() {
       characters: undefined,
       scenario: undefined,
       ending: undefined,
+      story: undefined,
+      pendingRevote: undefined,
       votes: {},
       players: room.players.map((p) => ({ ...p, alive: true, revealed: [] })),
     });
