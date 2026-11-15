@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.local
+.env.*.local
+server/node_modules
+server/dist
+.superpowers
+*.log
+.DS_Store
