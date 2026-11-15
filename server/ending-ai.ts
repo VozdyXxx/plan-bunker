@@ -78,7 +78,7 @@ export async function renderEnding(input: EndingInput, opts: RenderOpts = {}): P
   const apiKey = opts.apiKey ?? process.env.GEMINI_API_KEY;
   if (!apiKey) return fallbackStory(input);
   const fetchImpl = opts.fetchImpl ?? globalThis.fetch;
-  const model = opts.model ?? 'gemini-2.0-flash';
+  const model = opts.model ?? 'gemini-3.8-flash';
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const res = await fetchImpl(url, {
