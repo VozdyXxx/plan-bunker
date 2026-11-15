@@ -1,0 +1,7 @@
+# Caddy: автоматический HTTPS (Let's Encrypt) и прокси на Node-бэкенд.
+# Замените 1-2-3-4 на внешний IP вашей VM через дефисы (sslip.io резолвит его в этот IP).
+# Пример: внешний IP 34.70.15.9  ->  домен 34-70-15-9.sslip.io
+1-2-3-4.sslip.io {
+	encode gzip
+	reverse_proxy localhost:8080
+}
