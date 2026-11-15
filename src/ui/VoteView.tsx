@@ -67,8 +67,13 @@ export function VoteView({ state, me, isHost, onVote, onResolve }: Props) {
       </div>
 
       {isHost && (
-        <Button variant="danger" onClick={onResolve} style={{ position: 'sticky', bottom: 8 }}>
-          Подвести итог
+        <Button
+          variant="danger"
+          onClick={onResolve}
+          disabled={Object.keys(votes).length === 0}
+          style={{ position: 'sticky', bottom: 8 }}
+        >
+          {Object.keys(votes).length === 0 ? 'Ждём голоса…' : 'Подвести итог'}
         </Button>
       )}
     </Screen>

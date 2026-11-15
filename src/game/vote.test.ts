@@ -20,6 +20,13 @@ test('a tie is resolved deterministically by smallest id and flagged', () => {
   expect(res.tie).toBe(true);
 });
 
+test('no valid votes eliminates nobody', () => {
+  const ps = players([['a', true], ['b', true], ['c', true]]);
+  const res = tallyVotes({}, ps);
+  expect(res.eliminated).toBeNull();
+  expect(res.tie).toBe(false);
+});
+
 test('votes for an already eliminated player are ignored', () => {
   const ps = players([['a', true], ['b', true], ['c', true], ['e', false]]);
   const res = tallyVotes({ a: 'e', b: 'c' }, ps);

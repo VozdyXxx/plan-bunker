@@ -35,4 +35,10 @@ export const socketAdapter: RoomAdapter = {
   update(code, state) {
     return new Promise((resolve) => sock().emit('room:update', { code, state }, () => resolve()));
   },
+  vote(code, voterId, targetId) {
+    return new Promise((resolve) => sock().emit('room:vote', { code, voterId, targetId }, () => resolve()));
+  },
+  reveal(code, playerId, category) {
+    return new Promise((resolve) => sock().emit('room:reveal', { code, playerId, category }, () => resolve()));
+  },
 };

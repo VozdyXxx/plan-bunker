@@ -32,3 +32,20 @@ test('get for an unknown code returns undefined', () => {
   const store = createRoomStore();
   expect(store.get('ZZZZ')).toBeUndefined();
 });
+
+test('vote merges each voter without clobbering others (no lost update)', () => {
+  const store = createRoomStore();
+  const code = store.create(host);
+  store.join(code, { id: 'p2', name: 'Аня', alive: true, revealed: [] });
+  store.vote(code, 'h1', 'p2');
+  store.vote(code, 'p2', 'h1');
+  expect(store.get(code)!.votes).toEqual({ h1: 'p2', p2: 'h1' });
+});
+
+test('reveal adds a category once per player', () => {
+  const store = createRoomStore();
+  const code = store.create(host);
+  store.reveal(code, 'h1', 'profession');
+  store.reveal(code, 'h1', 'profession');
+  expect(store.get(code)!.players.find((p) => p.id === 'h1')!.revealed).toEqual(['profession']);
+});

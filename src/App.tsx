@@ -3,17 +3,9 @@ import type { Category, Player, RoomState } from './game/types';
 import { memoryAdapter } from './net/memoryAdapter';
 import { socketAdapter } from './net/socketAdapter';
 import type { RoomAdapter } from './net/RoomAdapter';
+import { adapterMode } from './net/selectAdapter';
 import { initTelegram, getStartParam, getUserName, getUserId } from './telegram/tma';
-import {
-  startGame,
-  addBot,
-  autoRevealBots,
-  autoVoteBots,
-  revealTrait,
-  castVote,
-  resolveVote,
-  finishGame,
-} from './game/controller';
+import { startGame, addBot, autoRevealBots, autoVoteBots, resolveVote, finishGame } from './game/controller';
 import { Lobby } from './ui/Lobby';
 import { RoundView } from './ui/RoundView';
 import { VoteView } from './ui/VoteView';
@@ -21,7 +13,11 @@ import { EndingView } from './ui/EndingView';
 import { Button, Screen } from './ui/kit';
 import { theme } from './ui/theme';
 
-const adapter: RoomAdapter = import.meta.env.VITE_SERVER_URL ? socketAdapter : memoryAdapter;
+const adapter: RoomAdapter =
+  adapterMode({ VITE_SERVER_URL: import.meta.env.VITE_SERVER_URL as string | undefined, DEV: import.meta.env.DEV }) ===
+  'memory'
+    ? memoryAdapter
+    : socketAdapter;
 const rng = () => Math.random();
 
 export default function App() {
@@ -71,9 +67,9 @@ export default function App() {
 
   const onAddBot = () => room && push(addBot(room, rng));
   const onStart = () => room && push(autoRevealBots(startGame(room, rng), rng));
-  const onReveal = (cat: Category) => room && push(revealTrait(room, me.id, cat));
+  const onReveal = (cat: Category) => room && adapter.reveal(codeRef.current, me.id, cat);
   const onToVote = () => room && push(autoVoteBots({ ...room, phase: 'vote', votes: {} }, rng));
-  const onVote = (target: string) => room && push(castVote(room, me.id, target));
+  const onVote = (target: string) => room && adapter.vote(codeRef.current, me.id, target);
   const onResolve = () => {
     if (!room) return;
     let s = resolveVote(room);

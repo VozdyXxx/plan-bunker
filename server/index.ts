@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRoomStore } from './store';
-import type { Player, RoomState } from '../src/game/types';
+import type { Category, Player, RoomState } from '../src/game/types';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -47,6 +47,24 @@ io.on('connection', (socket) => {
     io.to(code).emit('room:state', state);
     ack?.();
   });
+
+  socket.on(
+    'room:vote',
+    ({ code, voterId, targetId }: { code: string; voterId: string; targetId: string }, ack?: () => void) => {
+      const room = store.vote(code, voterId, targetId);
+      if (room) io.to(code).emit('room:state', room);
+      ack?.();
+    },
+  );
+
+  socket.on(
+    'room:reveal',
+    ({ code, playerId, category }: { code: string; playerId: string; category: Category }, ack?: () => void) => {
+      const room = store.reveal(code, playerId, category);
+      if (room) io.to(code).emit('room:state', room);
+      ack?.();
+    },
+  );
 });
 
 const port = Number(process.env.PORT) || 8080;

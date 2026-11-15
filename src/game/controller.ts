@@ -39,9 +39,10 @@ export function castVote(state: RoomState, voterId: string, targetId: string): R
   return { ...state, votes: { ...(state.votes ?? {}), [voterId]: targetId } };
 }
 
-/** Подводит итог голосования, выгоняет игрока и двигает фазу. */
+/** Подводит итог голосования, выгоняет игрока и двигает фазу. Без валидных голосов — ничего не делает. */
 export function resolveVote(state: RoomState): RoomState {
   const { eliminated } = tallyVotes(state.votes ?? {}, state.players);
+  if (eliminated === null) return state; // никто не проголосовал — остаёмся в голосовании
   const players = state.players.map((p) => (p.id === eliminated ? { ...p, alive: false } : p));
   const moved = nextPhase({ ...state, players, votes: {} });
   return { ...moved, votes: {}, turn: 0 };

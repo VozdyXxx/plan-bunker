@@ -34,4 +34,12 @@ export const memoryAdapter: RoomAdapter = {
     store.set(code, state);
     emit(code);
   },
+  async vote(code, voterId, targetId) {
+    store.vote(code, voterId, targetId);
+    emit(code);
+  },
+  async reveal(code, playerId, category) {
+    store.reveal(code, playerId, category);
+    emit(code);
+  },
 };

@@ -1,4 +1,4 @@
-import type { Player, RoomState } from '../src/game/types';
+import type { Category, Player, RoomState } from '../src/game/types';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без похожих символов
 
@@ -17,6 +17,10 @@ export interface RoomStore {
   join(code: string, player: Player): RoomState | undefined;
   get(code: string): RoomState | undefined;
   set(code: string, state: RoomState): void;
+  /** Гранулярный мёрж голоса — не перезаписывает чужие голоса. */
+  vote(code: string, voterId: string, targetId: string): RoomState | undefined;
+  /** Гранулярное раскрытие карты — без перезаписи всего состояния. */
+  reveal(code: string, playerId: string, category: Category): RoomState | undefined;
 }
 
 /** Чистое in-memory хранилище комнат. Без сети и сторонних зависимостей. */
@@ -55,6 +59,20 @@ export function createRoomStore(): RoomStore {
     },
     set(code: string, state: RoomState): void {
       rooms.set(code, state);
+    },
+    vote(code: string, voterId: string, targetId: string): RoomState | undefined {
+      const room = rooms.get(code);
+      if (!room) return undefined;
+      room.votes = { ...(room.votes ?? {}), [voterId]: targetId };
+      return room;
+    },
+    reveal(code: string, playerId: string, category: Category): RoomState | undefined {
+      const room = rooms.get(code);
+      if (!room) return undefined;
+      room.players = room.players.map((p) =>
+        p.id === playerId && !p.revealed.includes(category) ? { ...p, revealed: [...p.revealed, category] } : p,
+      );
+      return room;
     },
   };
 }

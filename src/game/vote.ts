@@ -1,7 +1,8 @@
 import type { Player } from './types';
 
 export interface VoteResult {
-  eliminated: string;
+  /** id выбывшего; null — валидных голосов не было, никого не выгоняем. */
+  eliminated: string | null;
   tie: boolean;
 }
 
@@ -26,8 +27,7 @@ export function tallyVotes(votes: Record<string, string>, players: Player[]): Vo
   }
 
   if (leaders.length === 0) {
-    const ids = [...aliveIds].sort();
-    return { eliminated: ids[0], tie: true };
+    return { eliminated: null, tie: false }; // никто не проголосовал — никого не выгоняем
   }
 
   leaders.sort();
