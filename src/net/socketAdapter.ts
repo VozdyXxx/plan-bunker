@@ -41,4 +41,10 @@ export const socketAdapter: RoomAdapter = {
   reveal(code, playerId, category) {
     return new Promise((resolve) => sock().emit('room:reveal', { code, playerId, category }, () => resolve()));
   },
+  playAbility(code, playerId, cardId, targetId) {
+    return new Promise((resolve) => sock().emit('room:ability', { code, playerId, cardId, targetId }, () => resolve()));
+  },
+  admin(code, action) {
+    return new Promise((resolve) => sock().emit('room:admin', { code, action }, () => resolve()));
+  },
 };

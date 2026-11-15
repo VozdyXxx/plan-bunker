@@ -1,4 +1,5 @@
 import type { Category, Player, RoomState } from '../game/types';
+import type { AdminAction } from '../game/admin';
 
 /** Единый интерфейс сетевого слоя: и память (локально), и websocket (боевой). */
 export interface RoomAdapter {
@@ -11,4 +12,8 @@ export interface RoomAdapter {
   vote(code: string, voterId: string, targetId: string): Promise<void>;
   /** Гранулярное раскрытие своей карты. */
   reveal(code: string, playerId: string, category: Category): Promise<void>;
+  /** Игрок играет активную карту навыка. */
+  playAbility(code: string, playerId: string, cardId: string, targetId?: string): Promise<void>;
+  /** Админ-действие (god-mode). */
+  admin(code: string, action: AdminAction): Promise<void>;
 }

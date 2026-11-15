@@ -1,4 +1,6 @@
 import type { Category, Player, RoomState } from '../src/game/types';
+import { applyActive } from '../src/game/abilities';
+import { applyAdmin, type AdminAction } from '../src/game/admin';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без похожих символов
 
@@ -21,6 +23,10 @@ export interface RoomStore {
   vote(code: string, voterId: string, targetId: string): RoomState | undefined;
   /** Гранулярное раскрытие карты — без перезаписи всего состояния. */
   reveal(code: string, playerId: string, category: Category): RoomState | undefined;
+  /** Игрок играет активную карту навыка. */
+  playAbility(code: string, playerId: string, cardId: string, targetId?: string): RoomState | undefined;
+  /** Админ-действие (god-mode). */
+  adminAction(code: string, action: AdminAction): RoomState | undefined;
 }
 
 /** Чистое in-memory хранилище комнат. Без сети и сторонних зависимостей. */
@@ -73,6 +79,20 @@ export function createRoomStore(): RoomStore {
         p.id === playerId && !p.revealed.includes(category) ? { ...p, revealed: [...p.revealed, category] } : p,
       );
       return room;
+    },
+    playAbility(code: string, playerId: string, cardId: string, targetId?: string): RoomState | undefined {
+      const room = rooms.get(code);
+      if (!room) return undefined;
+      const next = applyActive(room, playerId, cardId, targetId);
+      rooms.set(code, next);
+      return next;
+    },
+    adminAction(code: string, action: AdminAction): RoomState | undefined {
+      const room = rooms.get(code);
+      if (!room) return undefined;
+      const next = applyAdmin(room, action);
+      rooms.set(code, next);
+      return next;
     },
   };
 }

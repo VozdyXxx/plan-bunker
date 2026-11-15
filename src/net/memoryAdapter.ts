@@ -42,4 +42,12 @@ export const memoryAdapter: RoomAdapter = {
     store.reveal(code, playerId, category);
     emit(code);
   },
+  async playAbility(code, playerId, cardId, targetId) {
+    store.playAbility(code, playerId, cardId, targetId);
+    emit(code);
+  },
+  async admin(code, action) {
+    store.adminAction(code, action);
+    emit(code);
+  },
 };

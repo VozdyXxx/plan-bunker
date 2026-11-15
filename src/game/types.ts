@@ -155,8 +155,10 @@ export interface RoomState {
   place?: BunkerPlace;
   /** Запрошено повторное голосование (эффект карты навыка). */
   pendingRevote?: boolean;
-  /** Старая форма концовки; будет заменена на EndingStory в Task 12. */
+  /** Старая форма концовки (совместимость). */
   ending?: { outcomes: string[]; narrative: string; survivalPercent: number };
+  /** Богатая ИИ-история концовки. */
+  story?: EndingStory;
 }
 
 /** Структурированная ИИ-история концовки (Task 7). */
