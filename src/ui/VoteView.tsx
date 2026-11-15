@@ -1,5 +1,7 @@
 import type { Player, RoomState } from '../game/types';
 import { Button, Screen, ScenarioBanner } from './kit';
+import { AdminPanel } from './AdminPanel';
+import type { AdminAction } from '../game/admin';
 import { theme } from './theme';
 
 interface Props {
@@ -8,9 +10,10 @@ interface Props {
   isHost: boolean;
   onVote: (targetId: string) => void;
   onResolve: () => void;
+  onAdmin: (action: AdminAction) => void;
 }
 
-export function VoteView({ state, me, isHost, onVote, onResolve }: Props) {
+export function VoteView({ state, me, isHost, onVote, onResolve, onAdmin }: Props) {
   const alive = state.players.filter((p) => p.alive);
   const votes = state.votes ?? {};
   const myVote = votes[me.id];
@@ -28,6 +31,8 @@ export function VoteView({ state, me, isHost, onVote, onResolve }: Props) {
           round={state.round}
         />
       )}
+      {isHost && <AdminPanel state={state} onAdmin={onAdmin} />}
+
       <h2 style={{ fontFamily: theme.font.display, margin: '4px 0' }}>Кого выгоняем?</h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

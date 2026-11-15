@@ -8,6 +8,7 @@ import { initTelegram, getStartParam, getUserName, getUserId } from './telegram/
 import { startGame, addBot, autoRevealBots, autoVoteBots, resolveVote, finishGame } from './game/controller';
 import { buildEndingInput } from './game/endings/input';
 import { fallbackStory } from './game/endings/fallback';
+import type { AdminAction as AdminActionType } from './game/admin';
 import { Lobby } from './ui/Lobby';
 import { RoundView } from './ui/RoundView';
 import { VoteView } from './ui/VoteView';
@@ -73,6 +74,7 @@ export default function App() {
   const onVote = (target: string) => room && adapter.vote(codeRef.current, me.id, target);
   const onPlayAbility = (cardId: string, targetId?: string) =>
     room && adapter.playAbility(codeRef.current, me.id, cardId, targetId);
+  const onAdmin = (action: AdminActionType) => room && adapter.admin(codeRef.current, action);
   const onResolve = () => {
     if (!room) return;
     let s = resolveVote(room, rng);
@@ -144,10 +146,13 @@ export default function App() {
           onReveal={onReveal}
           onToVote={onToVote}
           onPlayAbility={onPlayAbility}
+          onAdmin={onAdmin}
         />
       );
     case 'vote':
-      return <VoteView state={room} me={mePlayer} isHost={isHost} onVote={onVote} onResolve={onResolve} />;
+      return (
+        <VoteView state={room} me={mePlayer} isHost={isHost} onVote={onVote} onResolve={onResolve} onAdmin={onAdmin} />
+      );
     case 'ending':
       return <EndingView state={room} isHost={isHost} onRestart={onRestart} />;
   }

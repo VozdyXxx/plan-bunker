@@ -3,6 +3,8 @@ import { Button, Screen, ScenarioBanner } from './kit';
 import { TraitReveal } from './TraitReveal';
 import { BunkerPanel } from './BunkerPanel';
 import { AbilityBar } from './AbilityBar';
+import { AdminPanel } from './AdminPanel';
+import type { AdminAction } from '../game/admin';
 import { theme } from './theme';
 
 interface Props {
@@ -12,9 +14,10 @@ interface Props {
   onReveal: (category: Category) => void;
   onToVote: () => void;
   onPlayAbility: (cardId: string, targetId?: string) => void;
+  onAdmin: (action: AdminAction) => void;
 }
 
-export function RoundView({ state, me, isHost, onReveal, onToVote, onPlayAbility }: Props) {
+export function RoundView({ state, me, isHost, onReveal, onToVote, onPlayAbility, onAdmin }: Props) {
   const alive = state.players.filter((p) => p.alive);
   const charOf = (id: string) => state.characters?.find((c) => c.playerId === id);
 
@@ -32,6 +35,8 @@ export function RoundView({ state, me, isHost, onReveal, onToVote, onPlayAbility
       )}
 
       <BunkerPanel catastrophe={state.catastrophe} place={state.place} bunker={state.bunker} />
+
+      {isHost && <AdminPanel state={state} onAdmin={onAdmin} />}
 
       <AbilityBar me={me} players={state.players} onPlay={onPlayAbility} />
 
