@@ -92,6 +92,8 @@ export interface BunkerState {
   brokenGenerator: boolean;
   extraFood: number;
   drugs: boolean;
+  /** Бункер заражён (оставленная болезнь / тайно заразный выживший). */
+  contaminated?: boolean;
 }
 
 export interface Catastrophe {
@@ -151,6 +153,8 @@ export interface RoomState {
   bunker?: BunkerState;
   catastrophe?: Catastrophe;
   place?: BunkerPlace;
+  /** Запрошено повторное голосование (эффект карты навыка). */
+  pendingRevote?: boolean;
   /** Старая форма концовки; будет заменена на EndingStory в Task 12. */
   ending?: { outcomes: string[]; narrative: string; survivalPercent: number };
 }

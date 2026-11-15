@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen": "node scripts/generate-content.mjs"
+    "gen": "node scripts/generate-content.mjs",
+    "gen:abilities": "node scripts/generate-abilities.mjs"
   },
   "dependencies": {
     "@twa-dev/sdk": "7.10.1",
