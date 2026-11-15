@@ -42,6 +42,7 @@ export interface Player {
   name: string;
   alive: boolean;
   revealed: Category[];
+  isBot?: boolean;
 }
 
 export interface RoomState {
@@ -52,6 +53,14 @@ export interface RoomState {
   scenarioId: string | null;
   /** Bunker capacity; set when the scenario is chosen. */
   spots: number;
+  /** Game payload, filled once the host starts the game. Synced as plain JSON. */
+  scenario?: Scenario;
+  characters?: Character[];
+  /** Index into alive players whose turn it is to reveal. */
+  turn?: number;
+  /** voterId -> targetId for the current vote. */
+  votes?: Record<string, string>;
+  ending?: { outcomes: string[]; narrative: string; survivalPercent: number };
 }
 
 export function isTrait(value: unknown): value is Trait {
