@@ -25,9 +25,9 @@ export function TraitReveal({ character, player, own, onReveal }: Props) {
           <CharacterCard
             key={cat}
             category={cat}
-            text={character.traits[cat].text}
-            revealed={own ? true : revealed}
-            own={own && !revealed}
+            text={character.traits[cat]?.text ?? ''}
+            revealed={revealed}
+            own={own}
             onReveal={onReveal ? () => onReveal(cat) : undefined}
           />
         );
