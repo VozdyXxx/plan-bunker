@@ -1,6 +1,6 @@
-import { test, expect } from 'vitest';
+import { test, expect, describe, it } from 'vitest';
 import { startGame, revealTrait, castVote, resolveVote, finishGame, addBot, autoVoteBots } from './controller';
-import type { Player, RoomState } from './types';
+import type { AbilityCard, Player, RoomState } from './types';
 
 function seededRng(seed: number) {
   return () => {
@@ -62,4 +62,40 @@ test('autoVoteBots makes every alive bot vote for an alive player other than its
     expect(s.votes![b.id]).toBeDefined();
     expect(s.votes![b.id]).not.toBe(b.id);
   }
+});
+
+describe('v2: интеграция сценария и навыков', () => {
+  it('startGame кладёт бункер/катастрофу/место и выдаёт по 2 навыка', () => {
+    const s = startGame(baseRoom(6), seededRng(11));
+    expect(s.bunker).toBeTruthy();
+    expect(s.bunker!.rooms.length).toBeGreaterThan(0);
+    expect(s.catastrophe!.title.length).toBeGreaterThan(0);
+    expect(s.place!.title.length).toBeGreaterThan(0);
+    for (const p of s.players) expect(p.abilities).toHaveLength(2);
+  });
+
+  function card(kind: AbilityCard['kind'], mechanic: AbilityCard['mechanic']): AbilityCard {
+    return { id: `c-${mechanic}`, kind, mechanic, title: 'T', text: 'T', used: false };
+  }
+
+  it('у изгнанного срабатывает on_eliminated, у выжившего on_survived при финале', () => {
+    const base = startGame(baseRoom(2), seededRng(12));
+    // Готовим детерминированный финал: spots=1, известные карты.
+    const s: RoomState = {
+      ...base,
+      phase: 'vote',
+      spots: 1,
+      bunker: { ...base.bunker!, rats: false, drugs: false, spots: 1 },
+      players: [
+        { ...base.players[0], id: 'a', alive: true, abilities: [card('on_survived', 'drugs')] },
+        { ...base.players[1], id: 'b', alive: true, abilities: [card('on_eliminated', 'rats')] },
+      ],
+      votes: { a: 'b', b: 'b' },
+    };
+    const out = resolveVote(s, () => 0);
+    expect(out.players.find((p) => p.id === 'b')!.alive).toBe(false);
+    expect(out.phase).toBe('ending');
+    expect(out.bunker!.rats).toBe(true); // on_eliminated у «b»
+    expect(out.bunker!.drugs).toBe(true); // on_survived у выжившего «a»
+  });
 });

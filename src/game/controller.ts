@@ -1,26 +1,39 @@
-import { CATEGORIES, type Category, type RoomState } from './types';
+import { CATEGORIES, type Category, type RoomState, type Scenario } from './types';
 import { dealCharacters } from './deal';
-import { pickScenario } from './scenario';
+import { pickScenario, buildScenario } from './scenario';
+import { dealAbilities, applyOnEliminated, applyOnSurvived } from './abilities';
 import { nextPhase } from './flow';
 import { tallyVotes } from './vote';
 import { generateEnding } from './endings';
 
-/** Хост стартует игру: раздаёт персонажей, выбирает катастрофу, открывает первый раунд. */
+/** Хост стартует игру: раздаёт персонажей и навыки, собирает катастрофу+бункер, открывает раунд. */
 export function startGame(state: RoomState, rng: () => number): RoomState {
   const ids = state.players.map((p) => p.id);
   const characters = dealCharacters(ids, rng);
-  const scenario = pickScenario(ids.length, rng);
+  const { catastrophe, place, bunker } = buildScenario(ids.length, rng);
+  // Производим Scenario-совместимый объект (для баннера и старой концовки).
+  const scenario: Scenario = {
+    id: catastrophe.id,
+    title: catastrophe.title,
+    years: bunker.years,
+    spots: bunker.spots,
+    conditions: [place.title],
+    tags: [],
+  };
   return {
     ...state,
     phase: 'round',
     round: 1,
-    spots: scenario.spots,
-    scenarioId: scenario.id,
+    spots: bunker.spots,
+    scenarioId: catastrophe.id,
     scenario,
+    catastrophe,
+    place,
+    bunker,
     characters,
     turn: 0,
     votes: {},
-    players: state.players.map((p) => ({ ...p, alive: true, revealed: [] })),
+    players: state.players.map((p) => ({ ...p, alive: true, revealed: [], abilities: dealAbilities(rng), conditions: [] })),
   };
 }
 
@@ -39,13 +52,26 @@ export function castVote(state: RoomState, voterId: string, targetId: string): R
   return { ...state, votes: { ...(state.votes ?? {}), [voterId]: targetId } };
 }
 
-/** Подводит итог голосования, выгоняет игрока и двигает фазу. Без валидных голосов — ничего не делает. */
-export function resolveVote(state: RoomState): RoomState {
+/** Подводит итог голосования, выгоняет игрока, применяет навыки и двигает фазу. */
+export function resolveVote(state: RoomState, rng: () => number = Math.random): RoomState {
   const { eliminated } = tallyVotes(state.votes ?? {}, state.players);
   if (eliminated === null) return state; // никто не проголосовал — остаёмся в голосовании
-  const players = state.players.map((p) => (p.id === eliminated ? { ...p, alive: false } : p));
-  const moved = nextPhase({ ...state, players, votes: {} });
-  return { ...moved, votes: {}, turn: 0 };
+
+  // Помечаем изгнанного и применяем его эффекты «при вылете» (могут задеть бункер и других).
+  let s: RoomState = { ...state, players: state.players.map((p) => (p.id === eliminated ? { ...p, alive: false } : p)) };
+  const elim = s.players.find((p) => p.id === eliminated);
+  if (elim) s = applyOnEliminated(s, elim, rng);
+
+  const moved = nextPhase({ ...s, votes: {} });
+
+  // Если дошли до финала — применяем эффекты «при проходе» у всех выживших.
+  let finalState = moved;
+  if (moved.phase === 'ending') {
+    for (const p of moved.players.filter((pl) => pl.alive)) {
+      finalState = applyOnSurvived(finalState, p, rng);
+    }
+  }
+  return { ...finalState, votes: {}, turn: 0 };
 }
 
 const BOT_NAMES = ['Бот Гена', 'Бот Люся', 'Бот Клава', 'Бот Пётр', 'Бот Зина', 'Бот Макс', 'Бот Рита', 'Бот Фёдор'];
